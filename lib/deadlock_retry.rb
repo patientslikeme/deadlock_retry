@@ -25,6 +25,9 @@ module DeadlockRetry
         raise if retry_count >= MAXIMUM_RETRIES_ON_DEADLOCK
         retry_count += 1
         logger.info "Deadlock detected on retry #{retry_count}, restarting transaction"
+        if retry_count == 1
+          Rollbar.warning error, "deadlock_retry gem was triggered", retry: retry_count
+        end
         log_innodb_status if DeadlockRetry.innodb_status_cmd
         exponential_pause(retry_count)
         retry
